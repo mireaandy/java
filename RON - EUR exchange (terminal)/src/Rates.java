@@ -38,20 +38,20 @@ public class Rates {
 
     public void analyze()
     {
-        int zileCresteri = 0;
-        int zileScaderi = 0;
+        int daysGrowth = 0;
+        int daysDecrease = 0;
 
         for (int i = 1; i < values.size(); i++) 
         {
             if(values.get(i).getValue() > values.get(i - 1).getValue())
-                zileScaderi++;
+                daysDecrease++;
             else
-                zileCresteri++;
+                daysGrowth++;
         }
 
         System.out.println(
-            "Numar cresteri " + String.valueOf(zileCresteri) + " \n"
-            + "Numar scaderi " + String.valueOf(zileScaderi)
+            "Number of growths" + String.valueOf(daysGrowth) + " \n"
+            + "Number of decreases " + String.valueOf(daysDecrease)
         );
     }
 }
