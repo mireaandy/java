@@ -2,14 +2,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Rates {
-    public String base;
-    public String currency;
+    private String base;
+    private String symbol;
     private List<Amount> values;
 
-    public Rates(String baseString, String currencyString)
+    public Rates()
     {
-        this.base = baseString;
-        this.currency = currencyString;
+        this.base = new String();
+        this.symbol = new String();
         this.values = new ArrayList<Amount>();
     }
 
@@ -26,20 +26,36 @@ public class Rates {
             this.values.add(newValue);
     }
 
-    public void printValues()
+    public boolean isEmpty()
     {
-        System.out.println("EUR - RON exchange rates by day");
-
-        for (Amount value : values) 
-        {
-            System.out.println(value.getDate() + " " + String.valueOf(value.getValue()));
-        }
+        return this.values.isEmpty();
+    }
+    
+    public String getBase()
+    {
+        return this.base;
     }
 
-    public void analyze()
+    public void setBase(String basesymbol)
+    {
+        this.base = basesymbol;
+    }
+
+    public String getSymbol()
+    {
+        return this.symbol;
+    }
+
+    public void setSymbol(String symbolsymbol)
+    {
+        this.symbol = symbolsymbol;
+    }
+
+    public int[] analyze()
     {
         int daysGrowth = 0;
         int daysDecrease = 0;
+        int[] answer;
 
         for (int i = 1; i < values.size(); i++) 
         {
@@ -49,9 +65,8 @@ public class Rates {
                 daysGrowth++;
         }
 
-        System.out.println(
-            "Number of growths" + String.valueOf(daysGrowth) + " \n"
-            + "Number of decreases " + String.valueOf(daysDecrease)
-        );
+        answer = new int[] {daysGrowth, daysDecrease};
+
+        return answer;
     }
 }
