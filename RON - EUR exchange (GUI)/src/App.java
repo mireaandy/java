@@ -3,9 +3,13 @@ import java.util.Calendar;
 import javax.swing.Action;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -32,7 +36,10 @@ public class App extends Application
     private StackPane graphicArea;
     private ComboBox<String> baseChoice, symbolChoice, yearChoice;
     private Button analyzeButton;
-    private LineChart exchangeRate;
+    private LineChart<String, Number> exchangeRateChart;
+    private NumberAxis valueAxis;
+    private CategoryAxis dateAxis;
+    private XYChart.Series<String, Number> rateSeries;
     private VBox controlArea;
     private HBox upsHBox, downsHBox;
     private Image upsIcon, downsIcon;
@@ -50,28 +57,11 @@ public class App extends Application
         launch(args);
     }
 
-    private void updateProgress(ProgressIndicator progressIndicator)
+    private void doAnalysis()
     {
-        progressIndicator.setProgress(progressIndicator.getProgress() + (1/365));
-    }
+        rateSeries.getData().clear();
 
-    @Override
-    public void start(Stage primaryStage) throws Exception
-    {
-        primaryStage.setTitle("Exchange Rate Analyzer");
-
-        values = new Rates();
-        rateGetter = new ExchangeRateGetter(values);
-        errorAlert = new Alert(AlertType.ERROR);
-        year = Calendar.getInstance();
-
-
-        EventHandler<ActionEvent> baseChanged = event -> values.setBase(baseChoice.getSelectionModel().getSelectedItem());
-        EventHandler<ActionEvent> symbolChanged = event -> values.setSymbol(symbolChoice.getSelectionModel().getSelectedItem());
-        EventHandler<ActionEvent> yearChanged = event -> year.set(Integer.parseInt(yearChoice.getSelectionModel().getSelectedItem()), 0, 1);
-        EventHandler<ActionEvent> doAnalysis = event -> 
-        {
-            while (true) 
+        while (true) 
             {
                 String[] answer;
                 String day = String.valueOf(year.get(Calendar.YEAR)) + '-'
@@ -79,13 +69,9 @@ public class App extends Application
                         + String.valueOf(year.get(Calendar.DAY_OF_MONTH));
                 
                 try {
-                    answer = rateGetter.getRate(day).split("_");
-
-                    Thread.sleep(5);
+                    answer = rateGetter.getRate(day, values).split("_");
 
                     values.addValue(new Amount(answer[1], Double.parseDouble(answer[0])));
-
-                    updateProgress(progressIndicator);
                 } catch (Exception e) {
                     errorAlert.setTitle("Error while fetching data");
                     errorAlert.setContentText(e.getMessage());
@@ -100,7 +86,7 @@ public class App extends Application
                 if ((year.get(Calendar.MONTH) == 11) && (year.get(Calendar.DAY_OF_MONTH) == 31)) 
                 {
                     try {
-                        answer = rateGetter.getRate(String.valueOf(year.get(Calendar.YEAR)) + "-12-31").split("_");
+                        answer = rateGetter.getRate(String.valueOf(year.get(Calendar.YEAR)) + "-12-31", values).split("_");
 
                         values.addValue(new Amount(answer[1], Double.parseDouble(answer[0])));
                         progressIndicator.setProgress(progressIndicator.getProgress() + 0.002);
@@ -113,18 +99,34 @@ public class App extends Application
 
                     break;
                 }
-
-                answer = null;
             }
             
             if(values.isEmpty() == false)
             {
-                int[] answer = values.analyze();
+                double[] answer = values.analyze(rateSeries);
+                valueAxis.setUpperBound(answer[3] + 0.1);
+                valueAxis.setLowerBound(answer[2] - 0.1);
+                exchangeRateChart.getData().add(rateSeries);
                 upText.setText(String.valueOf(answer[0]));
                 downText.setText(String.valueOf(answer[1]));
             }
+    }
 
-        };
+    @Override
+    public void start(Stage primaryStage) throws Exception
+    {
+        primaryStage.setTitle("Exchange Rate Analyzer");
+
+        values = new Rates();
+        rateGetter = new ExchangeRateGetter();
+        errorAlert = new Alert(AlertType.ERROR);
+        year = Calendar.getInstance();
+        rateSeries = new XYChart.Series<>();
+
+        EventHandler<ActionEvent> baseChanged = event -> values.setBase(baseChoice.getSelectionModel().getSelectedItem());
+        EventHandler<ActionEvent> symbolChanged = event -> values.setSymbol(symbolChoice.getSelectionModel().getSelectedItem());
+        EventHandler<ActionEvent> yearChanged = event -> year.set(Integer.parseInt(yearChoice.getSelectionModel().getSelectedItem()), 0, 1);
+        EventHandler<ActionEvent> doAnalysis = event -> doAnalysis();
         
         splitPane = new SplitPane();
 
@@ -177,16 +179,24 @@ public class App extends Application
         controlArea.getChildren().addAll(baseChoice, symbolChoice, yearChoice, analyzeButton, upsHBox, downsHBox);
 
         progressIndicator = new ProgressIndicator(0);
-        progressIndicator.heightProperty().add(100);
+
+
+        dateAxis = new CategoryAxis();
+        dateAxis.setLabel("Date");
+        valueAxis = new NumberAxis();
+        valueAxis.setLabel("Value");
+        valueAxis.setAutoRanging(false);
+        valueAxis.setTickUnit(0.01);
+        exchangeRateChart = new LineChart<>(dateAxis, valueAxis);
 
         graphicArea = new StackPane();
         graphicArea.setAlignment(Pos.CENTER);
-        graphicArea.getChildren().addAll(progressIndicator);
+        graphicArea.getChildren().addAll(exchangeRateChart);
 
         splitPane.getItems().addAll(controlArea, graphicArea);
-        splitPane.setDividerPosition(0, 0.3f);
+        splitPane.setDividerPosition(0, 0.10f);
         
-        mainScene = new Scene(splitPane, 500, 300);
+        mainScene = new Scene(splitPane, 1600, 900);
 
         primaryStage.setScene(mainScene);
         primaryStage.show();

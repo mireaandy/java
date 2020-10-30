@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
+import javafx.scene.chart.XYChart;
 
 public class Rates {
     private String base;
@@ -51,21 +52,26 @@ public class Rates {
         this.symbol = symbolsymbol;
     }
 
-    public int[] analyze()
+    public double[] analyze(XYChart.Series<String, Number> rateSeries)
     {
-        int daysGrowth = 0;
-        int daysDecrease = 0;
-        int[] answer;
+        double daysGrowth = 0;
+        double daysDecrease = 0;
+        double min = values.get(1).getValue();
+        double max = 0;
+        double[] answer;
 
         for (int i = 1; i < values.size(); i++) 
         {
+            min = min > values.get(i).getValue() ? values.get(i).getValue() : min;
+            max = max < values.get(i).getValue() ? values.get(i).getValue() : max;
+            rateSeries.getData().add(new XYChart.Data<>(values.get(i).getDate(), values.get(i).getValue()));
             if(values.get(i).getValue() > values.get(i - 1).getValue())
                 daysDecrease++;
             else
                 daysGrowth++;
         }
 
-        answer = new int[] {daysGrowth, daysDecrease};
+        answer = new double[] {daysGrowth, daysDecrease, min, max};
 
         return answer;
     }

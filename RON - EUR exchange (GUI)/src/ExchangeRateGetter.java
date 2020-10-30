@@ -7,23 +7,20 @@ import org.json.JSONObject;
 
 public class ExchangeRateGetter {
     private HttpClient client;
-    private Rates values;
 
     private void createHttpClient() {
         this.client = HttpClient.newHttpClient();
     }
 
-    public ExchangeRateGetter(Rates outputValues) {
-        this.values = outputValues;
-
+    public ExchangeRateGetter() {
         this.createHttpClient();
     }
 
-    public String getRate(String day) throws IOException, InterruptedException, Exception
+    public String getRate(String day, Rates values) throws IOException, InterruptedException, Exception
     {
         HttpRequest request = HttpRequest.newBuilder().uri(URI.create("https://api.exchangeratesapi.io/"+ day + "?symbols="
             + values.getSymbol() +"&base=" + values.getBase())).build();
-        HttpResponse<String> response = this.client.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response =  this.client.send(request, HttpResponse.BodyHandlers.ofString()); 
         JSONObject responeJsonObject = new JSONObject(response.body());
         
         if(responeJsonObject.has("error"))
@@ -31,4 +28,6 @@ public class ExchangeRateGetter {
         
         return responeJsonObject.getJSONObject("rates").get(values.getSymbol()).toString() + "_" + responeJsonObject.get("date").toString();
     }
+
+    
 }
