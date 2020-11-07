@@ -1,21 +1,17 @@
-public class Amount 
-{
+public class Amount {
     private String date;
     private Double value;
 
-    public Amount(String dateNew, Double valueNew)
-    {
+    public Amount(String dateNew, Double valueNew) {
         this.date = dateNew;
         this.value = valueNew;
     }
 
-    public String getDate()
-    {
+    public String getDate() {
         return this.date;
     }
 
-    public Double getValue()
-    {
+    public Double getValue() {
         return this.value;
     }
 }

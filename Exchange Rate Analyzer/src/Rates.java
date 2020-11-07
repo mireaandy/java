@@ -7,72 +7,68 @@ public class Rates {
     private String symbol;
     private List<Amount> values;
 
-    public Rates()
-    {
-        this.base = new String();
-        this.symbol = new String();
-        this.values = new ArrayList<Amount>();
+    public Rates() {
+        this.values = new ArrayList<>();
     }
 
-    public void addValue(Amount newValue)
-    {
+    public void addValue(Amount newValue) {
         boolean isNot = true;
-        for (Amount value : values) 
-        {
+        for (Amount value : values) {
             if (value.getDate().compareTo(newValue.getDate()) == 0)
                 isNot = false;
         }
 
-        if(isNot)
+        if (isNot)
             this.values.add(newValue);
     }
 
-    public boolean isEmpty()
-    {
+    public boolean isEmpty() {
         return this.values.isEmpty();
     }
-    
-    public String getBase()
-    {
+
+    public String getBase() {
         return this.base;
     }
 
-    public void setBase(String basesymbol)
-    {
+    public void setBase(String basesymbol) {
         this.base = basesymbol;
     }
 
-    public String getSymbol()
-    {
+    public String getSymbol() {
         return this.symbol;
     }
 
-    public void setSymbol(String symbolsymbol)
-    {
+    public void setSymbol(String symbolsymbol) {
         this.symbol = symbolsymbol;
     }
 
-    public double[] analyze(XYChart.Series<String, Number> rateSeries)
-    {
+    public double[] analyze(XYChart.Series<String, Number> rateSeries) {
         double daysGrowth = 0;
         double daysDecrease = 0;
-        double min = values.get(1).getValue();
+        double min = values.get(0).getValue();
         double max = 0;
         double[] answer;
 
-        for (int i = 1; i < values.size(); i++) 
-        {
+        for (int i = 1; i < values.size(); i++) {
             min = min > values.get(i).getValue() ? values.get(i).getValue() : min;
             max = max < values.get(i).getValue() ? values.get(i).getValue() : max;
+
             rateSeries.getData().add(new XYChart.Data<>(values.get(i).getDate(), values.get(i).getValue()));
-            if(values.get(i).getValue() > values.get(i - 1).getValue())
+
+            if (values.get(i).getValue() > values.get(i - 1).getValue())
                 daysDecrease++;
-            else
+            else if (values.get(i).getValue() < values.get(i - 1).getValue())
                 daysGrowth++;
         }
 
-        answer = new double[] {daysGrowth, daysDecrease, min, max};
+        min = min == max ? min - (min/10) : min;
+
+        answer = new double[] { daysGrowth, daysDecrease, min, max };
 
         return answer;
+    }
+
+    public void deleteData() {
+        values.removeAll(new ArrayList<>(values));
     }
 }
