@@ -1,6 +1,6 @@
-## Getting Started
+## Exchange Rate Analyzer
 
-Welcome to the VS Code Java world. Here is a guideline to help you get started to write Java code in Visual Studio Code.
+The app can be used to see the chart of any exchange rates provided by the European Central Bank from between 2009 and 2019.
 
 ## Folder Structure
 
